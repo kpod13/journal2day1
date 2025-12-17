@@ -30,7 +30,8 @@ var (
 
 func main() {
 	if err := newRootCmd(os.Stdout).Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err) //nolint:errcheck // stderr write errors are not critical
+
 		os.Exit(1)
 	}
 }
@@ -180,7 +181,7 @@ func runConvert(cfg *appConfig) error {
 					BarEnd:        "]",
 				}),
 				progressbar.OptionOnCompletion(func() {
-					fmt.Fprintln(cfg.output)
+					_, _ = fmt.Fprintln(cfg.output) //nolint:errcheck // progress bar completion write is not critical
 				}),
 			)
 		}

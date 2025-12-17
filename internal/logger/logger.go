@@ -1,4 +1,4 @@
-// Package logger provides colorful logging for CLI output.
+//nolint:errcheck // Logger methods intentionally ignore write errors - logging should never fail the application
 package logger
 
 import (
@@ -34,60 +34,60 @@ func New(out io.Writer) *Logger {
 
 // Info prints an informational message in cyan.
 func (l *Logger) Info(format string, args ...interface{}) {
-	l.info.Fprintf(l.out, "ℹ "+format+"\n", args...)
+	_, _ = l.info.Fprintf(l.out, "ℹ "+format+"\n", args...)
 }
 
 // Success prints a success message in green.
 func (l *Logger) Success(format string, args ...interface{}) {
-	l.success.Fprintf(l.out, "✓ "+format+"\n", args...)
+	_, _ = l.success.Fprintf(l.out, "✓ "+format+"\n", args...)
 }
 
 // Warn prints a warning message in yellow.
 func (l *Logger) Warn(format string, args ...interface{}) {
-	l.warn.Fprintf(l.out, "⚠ "+format+"\n", args...)
+	_, _ = l.warn.Fprintf(l.out, "⚠ "+format+"\n", args...)
 }
 
 // Error prints an error message in red.
 func (l *Logger) Error(format string, args ...interface{}) {
-	l.err.Fprintf(l.out, "✗ "+format+"\n", args...)
+	_, _ = l.err.Fprintf(l.out, "✗ "+format+"\n", args...)
 }
 
 // Step prints a processing step with an arrow.
 func (l *Logger) Step(format string, args ...interface{}) {
-	l.info.Fprint(l.out, "→ ")
-	fmt.Fprintf(l.out, format+"\n", args...)
+	_, _ = l.info.Fprint(l.out, "→ ")
+	_, _ = fmt.Fprintf(l.out, format+"\n", args...)
 }
 
 // Bold prints bold text.
 func (l *Logger) Bold(format string, args ...interface{}) {
-	l.bold.Fprintf(l.out, format, args...)
+	_, _ = l.bold.Fprintf(l.out, format, args...)
 }
 
 // Dim prints dimmed text.
 func (l *Logger) Dim(format string, args ...interface{}) {
-	l.dim.Fprintf(l.out, format, args...)
+	_, _ = l.dim.Fprintf(l.out, format, args...)
 }
 
 // Print prints plain text.
 func (l *Logger) Print(format string, args ...interface{}) {
-	fmt.Fprintf(l.out, format, args...)
+	_, _ = fmt.Fprintf(l.out, format, args...)
 }
 
 // Println prints plain text with newline.
 func (l *Logger) Println(format string, args ...interface{}) {
-	fmt.Fprintf(l.out, format+"\n", args...)
+	_, _ = fmt.Fprintf(l.out, format+"\n", args...)
 }
 
 // Header prints a bold header with separator.
 func (l *Logger) Header(title string) {
-	l.bold.Fprintf(l.out, "\n%s\n", title)
-	l.dim.Fprintf(l.out, "─────────────────────────────────\n")
+	_, _ = l.bold.Fprintf(l.out, "\n%s\n", title)
+	_, _ = l.dim.Fprintf(l.out, "─────────────────────────────────\n")
 }
 
 // KeyValue prints a key-value pair with the key dimmed.
 func (l *Logger) KeyValue(key, value string) {
-	l.dim.Fprintf(l.out, "  %s: ", key)
-	fmt.Fprintf(l.out, "%s\n", value)
+	_, _ = l.dim.Fprintf(l.out, "  %s: ", key)
+	_, _ = fmt.Fprintf(l.out, "%s\n", value)
 }
 
 // Color helper functions for templates.

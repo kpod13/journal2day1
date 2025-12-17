@@ -7,10 +7,6 @@ COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "none")
 DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LDFLAGS := -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)"
 
-# Go variables
-GOBIN := $(shell go env GOPATH)/bin
-GOLANGCI_LINT := $(GOBIN)/golangci-lint
-
 # Default target
 all: lint test build
 
@@ -36,30 +32,25 @@ test-coverage:
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report: coverage.html"
 
-# Install golangci-lint if not present
-$(GOLANGCI_LINT):
-	@echo "Installing golangci-lint..."
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
 # Run linter
 lint: lint-go lint-md
 
 # Run Go linter
-lint-go: $(GOLANGCI_LINT)
+lint-go:
 	@echo "Running Go linter..."
-	$(GOLANGCI_LINT) run ./...
+	golangci-lint run ./...
 
 # Run Markdown linter
 lint-md:
 	@echo "Running Markdown linter..."
-	@npx --yes markdownlint-cli2 "**/*.md" "#node_modules"
+	npx --yes markdownlint-cli2 "**/*.md" "#node_modules"
 
 # Run linter with auto-fix
-lint-fix: $(GOLANGCI_LINT)
+lint-fix:
 	@echo "Running Go linter with auto-fix..."
-	$(GOLANGCI_LINT) run --fix ./...
+	golangci-lint run --fix ./...
 	@echo "Running Markdown linter with auto-fix..."
-	@npx --yes markdownlint-cli2 --fix "**/*.md" "#node_modules"
+	npx --yes markdownlint-cli2 --fix "**/*.md" "#node_modules"
 
 # Format code
 fmt:

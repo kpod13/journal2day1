@@ -68,7 +68,8 @@ func (c *Converter) Convert(outputPath string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to create temp dir")
 	}
-	defer os.RemoveAll(tmpDir)
+
+	defer func() { _ = os.RemoveAll(tmpDir) }() //nolint:errcheck // cleanup errors are not critical
 
 	dirs, err := c.createOutputDirs(tmpDir)
 	if err != nil {
@@ -293,11 +294,12 @@ func buildEntryText(entry *models.AppleJournalEntry, photoRefs []string) string 
 }
 
 func copyMediaFile(srcPath, ext string, dirs *outputDirs) (md5Hash string, fileSize int64, err error) {
-	src, err := os.Open(srcPath)
+	src, err := os.Open(filepath.Clean(srcPath))
 	if err != nil {
 		return "", 0, errors.Wrap(err, "failed to open source")
 	}
-	defer src.Close()
+
+	defer func() { _ = src.Close() }() //nolint:errcheck // read-only file close errors are not critical
 
 	md5Hash, err = calculateMD5(src)
 	if err != nil {
@@ -342,12 +344,17 @@ func getDestinationPath(ext, md5Hash string, dirs *outputDirs) string {
 	return filepath.Join(dirs.photos, md5Hash+"."+normalizedExt)
 }
 
-func copyToFile(src io.Reader, dstPath string) error {
-	dst, err := os.Create(dstPath)
+func copyToFile(src io.Reader, dstPath string) (err error) {
+	dst, err := os.Create(dstPath) //nolint:gosec // dstPath is constructed internally from trusted sources
 	if err != nil {
 		return errors.Wrap(err, "failed to create destination")
 	}
-	defer dst.Close()
+
+	defer func() {
+		if cerr := dst.Close(); cerr != nil && err == nil {
+			err = errors.Wrap(cerr, "failed to close destination")
+		}
+	}()
 
 	if _, err := io.Copy(dst, src); err != nil {
 		return errors.Wrap(err, "failed to copy file")
@@ -356,15 +363,25 @@ func copyToFile(src io.Reader, dstPath string) error {
 	return nil
 }
 
-func createZipArchive(srcDir, dstPath string) error {
-	zipFile, err := os.Create(dstPath)
+func createZipArchive(srcDir, dstPath string) (err error) {
+	zipFile, err := os.Create(dstPath) //nolint:gosec // dstPath is validated user input from CLI flags
 	if err != nil {
 		return errors.Wrap(err, "failed to create ZIP file")
 	}
-	defer zipFile.Close()
+
+	defer func() {
+		if cerr := zipFile.Close(); cerr != nil && err == nil {
+			err = errors.Wrap(cerr, "failed to close ZIP file")
+		}
+	}()
 
 	archive := zip.NewWriter(zipFile)
-	defer archive.Close()
+
+	defer func() {
+		if cerr := archive.Close(); cerr != nil && err == nil {
+			err = errors.Wrap(cerr, "failed to close ZIP archive")
+		}
+	}()
 
 	return filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -398,11 +415,12 @@ func addFileToZip(archive *zip.Writer, srcDir, path string, info os.FileInfo) er
 		return errors.Wrap(err, "failed to create ZIP entry")
 	}
 
-	file, err := os.Open(path)
+	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return errors.Wrap(err, "failed to open file for ZIP")
 	}
-	defer file.Close()
+
+	defer func() { _ = file.Close() }() //nolint:errcheck // read-only file close errors are not critical
 
 	if _, err := io.Copy(writer, file); err != nil {
 		return errors.Wrap(err, "failed to write to ZIP")

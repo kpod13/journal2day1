@@ -83,7 +83,8 @@ func verifyZipContents(t *testing.T, zipPath string) {
 
 	zipReader, err := zip.OpenReader(zipPath)
 	require.NoError(t, err)
-	defer zipReader.Close()
+
+	defer func() { _ = zipReader.Close() }() //nolint:errcheck // test cleanup
 
 	var (
 		hasJSON, hasPhotosDir bool
@@ -114,7 +115,8 @@ func verifyJSONContent(t *testing.T, jsonFile *zip.File) {
 
 	rc, err := jsonFile.Open()
 	require.NoError(t, err)
-	defer rc.Close()
+
+	defer func() { _ = rc.Close() }() //nolint:errcheck // test cleanup
 
 	var export models.DayOneExport
 
@@ -187,7 +189,8 @@ func verifyVideoZipContents(t *testing.T, zipPath string) {
 
 	zipReader, err := zip.OpenReader(zipPath)
 	require.NoError(t, err)
-	defer zipReader.Close()
+
+	defer func() { _ = zipReader.Close() }() //nolint:errcheck // test cleanup
 
 	var hasVideosDir bool
 
@@ -252,7 +255,8 @@ func verifyMultipleEntries(t *testing.T, zipPath string) {
 
 	zipReader, err := zip.OpenReader(zipPath)
 	require.NoError(t, err)
-	defer zipReader.Close()
+
+	defer func() { _ = zipReader.Close() }() //nolint:errcheck // test cleanup
 
 	var jsonFile *zip.File
 
@@ -268,7 +272,8 @@ func verifyMultipleEntries(t *testing.T, zipPath string) {
 
 	rc, err := jsonFile.Open()
 	require.NoError(t, err)
-	defer rc.Close()
+
+	defer func() { _ = rc.Close() }() //nolint:errcheck // test cleanup
 
 	var export models.DayOneExport
 
@@ -385,7 +390,8 @@ func verifyMixedMediaZipContents(t *testing.T, zipPath string) {
 
 	zipReader, err := zip.OpenReader(zipPath)
 	require.NoError(t, err)
-	defer zipReader.Close()
+
+	defer func() { _ = zipReader.Close() }() //nolint:errcheck // test cleanup
 
 	var (
 		hasPhotos bool
@@ -607,7 +613,8 @@ func verifyResourceMetadata(t *testing.T, zipPath string) {
 
 	zipReader, err := zip.OpenReader(zipPath)
 	require.NoError(t, err)
-	defer zipReader.Close()
+
+	defer func() { _ = zipReader.Close() }() //nolint:errcheck // test cleanup
 
 	var jsonFile *zip.File
 
@@ -623,7 +630,8 @@ func verifyResourceMetadata(t *testing.T, zipPath string) {
 
 	rc, err := jsonFile.Open()
 	require.NoError(t, err)
-	defer rc.Close()
+
+	defer func() { _ = rc.Close() }() //nolint:errcheck // test cleanup
 
 	var export models.DayOneExport
 
@@ -688,7 +696,8 @@ func verifyJPGConversion(t *testing.T, zipPath string) {
 
 	zipReader, err := zip.OpenReader(zipPath)
 	require.NoError(t, err)
-	defer zipReader.Close()
+
+	defer func() { _ = zipReader.Close() }() //nolint:errcheck // test cleanup
 
 	var jsonFile *zip.File
 
@@ -704,7 +713,8 @@ func verifyJPGConversion(t *testing.T, zipPath string) {
 
 	rc, err := jsonFile.Open()
 	require.NoError(t, err)
-	defer rc.Close()
+
+	defer func() { _ = rc.Close() }() //nolint:errcheck // test cleanup
 
 	var export models.DayOneExport
 
@@ -825,7 +835,8 @@ func verifyMultiplePhotos(t *testing.T, zipPath string) {
 
 	zipReader, err := zip.OpenReader(zipPath)
 	require.NoError(t, err)
-	defer zipReader.Close()
+
+	defer func() { _ = zipReader.Close() }() //nolint:errcheck // test cleanup
 
 	var photoCount int
 

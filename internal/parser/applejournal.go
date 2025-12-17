@@ -56,11 +56,12 @@ func (p *AppleJournalParser) ParseAll() ([]models.AppleJournalEntry, error) {
 
 // ParseEntry parses a single Apple Journal HTML entry.
 func (p *AppleJournalParser) ParseEntry(filePath string) (*models.AppleJournalEntry, error) {
-	file, err := os.Open(filePath)
+	file, err := os.Open(filepath.Clean(filePath))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to open file")
 	}
-	defer file.Close()
+
+	defer func() { _ = file.Close() }() //nolint:errcheck // read-only file close errors are not critical
 
 	doc, err := html.Parse(file)
 	if err != nil {
@@ -318,7 +319,7 @@ func collectBodyText(n *html.Node, parts *[]string) {
 func (p *AppleJournalParser) LoadResourceMeta(uuid string) (*models.AppleJournalResourceMeta, error) {
 	metaPath := filepath.Join(p.basePath, "Resources", uuid+".json")
 
-	data, err := os.ReadFile(metaPath)
+	data, err := os.ReadFile(filepath.Clean(metaPath))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read metadata")
 	}

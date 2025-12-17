@@ -1,15 +1,16 @@
+version: "2"
+
 run:
   timeout: 5m
   modules-download-mode: readonly
 
 linters:
-  disable-all: true
+  default: none
   enable:
     # Bugs
     - errcheck
     - govet
     - staticcheck
-    - typecheck
     - ineffassign
     - unused
     - bodyclose
@@ -24,13 +25,11 @@ linters:
     - unconvert
 
     # Style & Best Practices
-    - gofmt
-    - goimports
     - revive
     - misspell
     - godot
     - whitespace
-    - wsl
+    - wsl_v5
 
     # Complexity
     - gocyclo
@@ -48,101 +47,104 @@ linters:
     - nakedret
     - dupl
 
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-    exclude-functions:
-      - (io.Closer).Close
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      exclude-functions:
+        - (io.Closer).Close
 
-  gocyclo:
-    min-complexity: 15
+    gocyclo:
+      min-complexity: 15
 
-  gocognit:
-    min-complexity: 20
+    gocognit:
+      min-complexity: 20
 
-  funlen:
-    lines: 80
-    statements: 50
+    funlen:
+      lines: 80
+      statements: 50
 
-  nestif:
-    min-complexity: 5
+    nestif:
+      min-complexity: 5
 
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment # Premature optimization
-      - shadow         # Too noisy for idiomatic Go
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment # Premature optimization
+        - shadow         # Too noisy for idiomatic Go
 
-  goimports:
-    local-prefixes: github.com/kpod13/journal2day1
+    goconst:
+      min-len: 3
+      min-occurrences: 3
 
-  goconst:
-    min-len: 3
-    min-occurrences: 3
+    misspell:
+      locale: US
 
-  misspell:
-    locale: US
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: exported
+        - name: if-return
+        - name: increment-decrement
+        - name: var-naming
+        - name: var-declaration
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: empty-block
+        - name: superfluous-else
+        - name: unused-parameter
+        - name: unreachable-code
+        - name: redefines-builtin-id
 
-  revive:
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+        - style
+      disabled-checks:
+        - hugeParam
+        - rangeValCopy
+
+    gosec:
+      excludes:
+        - G101 # Potential hardcoded credentials (too many false positives)
+
+    nakedret:
+      max-func-lines: 30
+
+    dupl:
+      threshold: 150
+
+  exclusions:
     rules:
-      - name: blank-imports
-      - name: context-as-argument
-      - name: context-keys-type
-      - name: dot-imports
-      - name: error-return
-      - name: error-strings
-      - name: error-naming
-      - name: exported
-      - name: if-return
-      - name: increment-decrement
-      - name: var-naming
-      - name: var-declaration
-      - name: range
-      - name: receiver-naming
-      - name: time-naming
-      - name: unexported-return
-      - name: indent-error-flow
-      - name: errorf
-      - name: empty-block
-      - name: superfluous-else
-      - name: unused-parameter
-      - name: unreachable-code
-      - name: redefines-builtin-id
+      - path: _test\.go
+        linters:
+          - dupl
+          - funlen
+          - gocognit
+          - gosec
 
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - performance
-      - style
-    disabled-checks:
-      - hugeParam
-      - rangeValCopy
+      # MD5 is required by DayOne format
+      - path: internal/converter/
+        text: "G401|G501"
+        linters:
+          - gosec
 
-  gosec:
-    excludes:
-      - G101 # Potential hardcoded credentials (too many false positives)
-
-  nakedret:
-    max-func-lines: 30
-
-  dupl:
-    threshold: 150
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - dupl
-        - funlen
-        - gocognit
-        - gosec
-
-    # MD5 is required by DayOne format
-    - path: internal/converter/
-      text: "G401|G501"
-      linters:
-        - gosec
-
-  max-issues-per-linter: 0
-  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/kpod13/journal2day1
