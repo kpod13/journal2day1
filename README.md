@@ -2,6 +2,37 @@
 
 Convert Apple Journal HTML exports to DayOne JSON ZIP format.
 
+```text
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│  Apple Journal  │      │  journal2day1   │      │     DayOne      │
+│     (macOS)     │      │      (CLI)      │      │  (macOS/iOS)    │
+└────────┬────────┘      └────────┬────────┘      └────────┬────────┘
+         │                        │                        │
+         │  File > Export...      │                        │
+         │                        │                        │
+         ▼                        │                        │
+┌─────────────────┐               │                        │
+│   Export Dir    │               │                        │
+│ ┌─────────────┐ │    convert    │                        │
+│ │  Entries/   │ │───────────────▶                        │
+│ │   *.html    │ │               │                        │
+│ ├─────────────┤ │               ▼                        │
+│ │ Resources/  │ │      ┌─────────────────┐               │
+│ │ *.jpg *.mov │ │      │   output.zip    │  File > Import│
+│ └─────────────┘ │      │ ┌─────────────┐ │───────────────▶
+└─────────────────┘      │ │ Journal.json│ │               │
+                         │ ├─────────────┤ │               │
+                         │ │  photos/    │ │               │
+                         │ │  videos/    │ │               │
+                         │ └─────────────┘ │               │
+                         └─────────────────┘               │
+                                                           ▼
+                                                  ┌─────────────────┐
+                                                  │  Your entries   │
+                                                  │  in DayOne      │
+                                                  └─────────────────┘
+```
+
 ## Installation
 
 ```bash
@@ -41,6 +72,24 @@ journal2day1 convert \
   -t "America/New_York"
 ```
 
+## Exporting from Apple Journal (macOS)
+
+To export your entries from Apple Journal:
+
+1. Open the **Journal** app on your Mac (requires macOS Sonoma 14.2 or later)
+2. Click **File** in the menu bar
+3. Select **Export Journal...**
+4. Choose a destination folder (e.g., `~/AppleJournalEntries`)
+5. Click **Export**
+
+The export will create a folder containing:
+
+- `Entries/` — HTML files with your journal entries
+- `Resources/` — media files (photos, videos) and their metadata
+
+> **Note:** The export includes all entries from your Journal. There is no option
+> to export a specific date range.
+
 ## Apple Journal Export Structure
 
 The tool expects an Apple Journal export directory with the following structure:
@@ -59,14 +108,31 @@ AppleJournalEntries/
     └── ...
 ```
 
-## DayOne Import
+## Importing into DayOne
 
-After conversion, import the ZIP file into DayOne:
+After running the conversion, import the generated ZIP file into DayOne:
 
-1. Open DayOne
-1. Go to File > Import > DayOne JSON (.zip)
-1. Select the generated ZIP file
-1. Choose the target journal
+### On macOS
+
+1. Open **DayOne** on your Mac
+2. Click **File** in the menu bar
+3. Select **Import** → **DayOne JSON (.zip)**
+4. Navigate to your generated ZIP file and select it
+5. Choose the target journal or create a new one
+6. Click **Import**
+
+### On iOS/iPadOS
+
+1. Transfer the ZIP file to your device (via AirDrop, iCloud Drive, or Files app)
+2. Open **DayOne** on your device
+3. Tap the **gear icon** (Settings) in the bottom navigation
+4. Scroll down and tap **Import**
+5. Select **DayOne JSON (.zip)**
+6. Navigate to your ZIP file and select it
+7. Choose the target journal
+
+> **Tip:** For large imports with many photos/videos, importing on macOS is
+> recommended as it handles large files more reliably.
 
 ## Development
 
