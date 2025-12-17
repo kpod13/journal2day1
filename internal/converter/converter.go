@@ -27,11 +27,15 @@ const (
 	filePermission = 0o600
 )
 
+// ProgressFunc is called during conversion to report progress.
+type ProgressFunc func(current, total int)
+
 // Converter converts Apple Journal entries to DayOne format.
 type Converter struct {
 	parser      *parser.AppleJournalParser
 	journalName string
 	timeZone    string
+	onProgress  ProgressFunc
 }
 
 // NewConverter creates a new converter.
@@ -46,6 +50,11 @@ func NewConverter(appleJournalPath, journalName string) *Converter {
 // SetTimeZone sets the timezone for entries.
 func (c *Converter) SetTimeZone(tz string) {
 	c.timeZone = tz
+}
+
+// SetProgressFunc sets the progress callback function.
+func (c *Converter) SetProgressFunc(fn ProgressFunc) {
+	c.onProgress = fn
 }
 
 // Convert converts all Apple Journal entries and creates a DayOne ZIP archive.
@@ -103,7 +112,13 @@ func (c *Converter) convertEntries(entries []models.AppleJournalEntry, dirs *out
 		Entries:  make([]models.DayOneEntry, 0, len(entries)),
 	}
 
+	total := len(entries)
+
 	for i := range entries {
+		if c.onProgress != nil {
+			c.onProgress(i+1, total)
+		}
+
 		dayOneEntry := c.convertEntry(&entries[i], dirs)
 		dayOneExport.Entries = append(dayOneExport.Entries, *dayOneEntry)
 	}

@@ -105,11 +105,8 @@ func (p *AppleJournalParser) extractFromNode(n *html.Node, entry *models.AppleJo
 }
 
 func (p *AppleJournalParser) processElement(n *html.Node, entry *models.AppleJournalEntry) {
-	switch n.Data {
-	case "div":
+	if n.Data == "div" {
 		p.processDivElement(n, entry)
-	case "p":
-		p.processParagraph(n, entry)
 	}
 }
 
@@ -129,24 +126,6 @@ func (p *AppleJournalParser) processDivElement(n *html.Node, entry *models.Apple
 		if text := extractBodyText(n); text != "" {
 			entry.Body = text
 		}
-	}
-}
-
-func (p *AppleJournalParser) processParagraph(n *html.Node, entry *models.AppleJournalEntry) {
-	class := getAttr(n, "class")
-	if class != "p2" {
-		return
-	}
-
-	text := strings.TrimSpace(getTextContent(n))
-	if text == "" {
-		return
-	}
-
-	if entry.Body == "" {
-		entry.Body = text
-	} else {
-		entry.Body += "\n" + text
 	}
 }
 

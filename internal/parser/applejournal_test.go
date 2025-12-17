@@ -54,8 +54,7 @@ func TestParseEntryWithBody(t *testing.T) {
 <body>
 <div class="pageHeader">Monday, 15 December 2025</div>
 <div class='title'>Test Title</div>
-<div class='bodyText'></div>
-<p class="p2"><span class="s2">Test body text</span></p>
+<div class='bodyText'>Test body text</div>
 </body>
 </html>`
 
@@ -298,9 +297,11 @@ func TestParseEntryWithMultipleBodyParagraphs(t *testing.T) {
 <body>
 <div class="pageHeader">Monday, 15 December 2025</div>
 <div class='title'>Multi Body</div>
-<p class="p2"><span class="s2">First paragraph</span></p>
-<p class="p2"><span class="s2">Second paragraph</span></p>
-<p class="p2"><span class="s2">Third paragraph</span></p>
+<div class='bodyText'>
+<p>First paragraph</p>
+<p>Second paragraph</p>
+<p>Third paragraph</p>
+</div>
 </body>
 </html>`
 
@@ -567,8 +568,7 @@ func TestParseEntryWithOtherParagraphClass(t *testing.T) {
 <body>
 <div class="pageHeader">Monday, 15 December 2025</div>
 <div class='title'>Other Class</div>
-<p class="p1"><span class="s1">Ignored text</span></p>
-<p class="p2"><span class="s2">Included text</span></p>
+<div class='bodyText'>Included text</div>
 </body>
 </html>`
 
@@ -581,7 +581,6 @@ func TestParseEntryWithOtherParagraphClass(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, "Included text", entry.Body)
-	require.NotContains(t, entry.Body, "Ignored text")
 }
 
 func TestParseAllSkipsNonHTML(t *testing.T) {
@@ -624,8 +623,10 @@ func TestParseEntryWithEmptyParagraph(t *testing.T) {
 <body>
 <div class="pageHeader">Monday, 15 December 2025</div>
 <div class='title'>Empty Para</div>
-<p class="p2"><span class="s2"></span></p>
-<p class="p2"><span class="s2">Non-empty</span></p>
+<div class='bodyText'>
+<p><span></span></p>
+<p><span>Non-empty</span></p>
+</div>
 </body>
 </html>`
 

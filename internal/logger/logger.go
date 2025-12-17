@@ -89,3 +89,13 @@ func (l *Logger) KeyValue(key, value string) {
 	l.dim.Fprintf(l.out, "  %s: ", key)
 	fmt.Fprintf(l.out, "%s\n", value)
 }
+
+// Color helper functions for templates.
+var (
+	Cyan    = color.New(color.FgCyan).SprintFunc()
+	Green   = color.New(color.FgGreen).SprintFunc()
+	Yellow  = color.New(color.FgYellow).SprintFunc()
+	Bold    = color.New(color.Bold).SprintFunc()
+	Dim     = color.New(color.Faint).SprintFunc()
+	Magenta = color.New(color.FgMagenta).SprintFunc()
+)

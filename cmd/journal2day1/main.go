@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 
 	"github.com/kpod13/journal2day1/internal/converter"
@@ -52,19 +53,52 @@ func newRootCmd(output io.Writer) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "journal2day1",
 		Short: "Convert Apple Journal exports to DayOne format",
-		Long: `journal2day1 converts Apple Journal HTML exports to DayOne JSON ZIP format.
-
-The tool reads the Apple Journal export directory (containing Entries/ and Resources/
-subdirectories) and creates a ZIP archive that can be imported into DayOne.
-
-Example:
-  journal2day1 convert -i ~/AppleJournalEntries -o ~/dayone-import.zip`,
+		Long: logger.Bold("journal2day1") + " converts Apple Journal HTML exports to DayOne JSON ZIP format.\n\n" +
+			"The tool reads the Apple Journal export directory (containing " +
+			logger.Cyan("Entries/") + " and " + logger.Cyan("Resources/") +
+			"\nsubdirectories) and creates a ZIP archive that can be imported into DayOne.\n\n" +
+			logger.Dim("Example:") + "\n" +
+			"  " + logger.Green("journal2day1 convert -i ~/AppleJournalEntries -o ~/dayone-import.zip"),
 	}
 
+	rootCmd.SetUsageTemplate(coloredUsageTemplate())
 	rootCmd.AddCommand(newConvertCmd(cfg))
 	rootCmd.AddCommand(newVersionCmd(cfg.log))
 
 	return rootCmd
+}
+
+func coloredUsageTemplate() string {
+	return logger.Bold("Usage:") + `{{if .Runnable}}
+  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
+
+` + logger.Bold("Aliases:") + `
+  {{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+` + logger.Bold("Examples:") + `
+{{.Example}}{{end}}{{if .HasAvailableSubCommands}}{{$cmds := .Commands}}{{if eq (len .Groups) 0}}
+
+` + logger.Bold("Available Commands:") + `{{range $cmds}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+  ` + logger.Cyan("{{rpad .Name .NamePadding }}") + ` {{.Short}}{{end}}{{end}}{{else}}{{range $group := .Groups}}
+
+{{.Title}}{{range $cmds}}{{if (and (eq .GroupID $group.ID) (or .IsAvailableCommand (eq .Name "help")))}}
+  ` + logger.Cyan("{{rpad .Name .NamePadding }}") + ` {{.Short}}{{end}}{{end}}{{end}}{{if not .AllChildCommandsHaveGroup}}
+
+` + logger.Bold("Additional Commands:") + `{{range $cmds}}{{if (and (eq .GroupID "") (or .IsAvailableCommand (eq .Name "help")))}}
+  ` + logger.Cyan("{{rpad .Name .NamePadding }}") + ` {{.Short}}{{end}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+
+` + logger.Bold("Flags:") + `
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+` + logger.Bold("Global Flags:") + `
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+` + logger.Bold("Additional help topics:") + `{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+
+Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+`
 }
 
 func newConvertCmd(cfg *appConfig) *cobra.Command {
@@ -126,10 +160,33 @@ func runConvert(cfg *appConfig) error {
 
 	printConvertInfo(cfg.log, absInput, absOutput, cfg.journalName, cfg.timeZone)
 
-	cfg.log.Step("Starting conversion...")
-
 	conv := converter.NewConverter(absInput, cfg.journalName)
 	conv.SetTimeZone(cfg.timeZone)
+
+	var bar *progressbar.ProgressBar
+
+	conv.SetProgressFunc(func(current, total int) {
+		if bar == nil {
+			bar = progressbar.NewOptions(total,
+				progressbar.OptionSetWriter(cfg.output),
+				progressbar.OptionEnableColorCodes(true),
+				progressbar.OptionShowCount(),
+				progressbar.OptionSetWidth(getProgressBarWidth()),
+				progressbar.OptionSetTheme(progressbar.Theme{
+					Saucer:        "[green]█[reset]",
+					SaucerHead:    "[green]█[reset]",
+					SaucerPadding: "░",
+					BarStart:      "[",
+					BarEnd:        "]",
+				}),
+				progressbar.OptionOnCompletion(func() {
+					fmt.Fprintln(cfg.output)
+				}),
+			)
+		}
+
+		_ = bar.Set(current) //nolint:errcheck // progress bar errors are not critical
+	})
 
 	if err := conv.Convert(absOutput); err != nil {
 		return errors.Wrap(err, "failed to convert")
@@ -161,4 +218,19 @@ func printConvertInfo(log *logger.Logger, input, output, journalName, timeZone s
 	log.KeyValue("Journal", journalName)
 	log.KeyValue("Timezone", timeZone)
 	log.Println("")
+}
+
+const (
+	maxProgressLineWidth = 120
+	minProgressWidth     = 20
+	progressBarOffset    = 35 // space for percentage, count, time, etc.
+)
+
+func getProgressBarWidth() int {
+	barWidth := maxProgressLineWidth - progressBarOffset
+	if barWidth < minProgressWidth {
+		barWidth = minProgressWidth
+	}
+
+	return barWidth
 }
