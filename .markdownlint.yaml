@@ -1,0 +1,8 @@
+# markdownlint configuration
+# https://github.com/DavidAnson/markdownlint
+
+default: true
+
+# Line length
+MD013:
+  line_length: 160

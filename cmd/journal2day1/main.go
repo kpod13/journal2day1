@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/kpod13/journal2day1/internal/converter"
+	"github.com/kpod13/journal2day1/internal/logger"
 )
 
 // Build-time variables.
@@ -39,10 +40,14 @@ type appConfig struct {
 	journalName string
 	timeZone    string
 	output      io.Writer
+	log         *logger.Logger
 }
 
 func newRootCmd(output io.Writer) *cobra.Command {
-	cfg := &appConfig{output: output}
+	cfg := &appConfig{
+		output: output,
+		log:    logger.New(output),
+	}
 
 	rootCmd := &cobra.Command{
 		Use:   "journal2day1",
@@ -57,7 +62,7 @@ Example:
 	}
 
 	rootCmd.AddCommand(newConvertCmd(cfg))
-	rootCmd.AddCommand(newVersionCmd(output))
+	rootCmd.AddCommand(newVersionCmd(cfg.log))
 
 	return rootCmd
 }
@@ -87,20 +92,21 @@ func newConvertCmd(cfg *appConfig) *cobra.Command {
 	return cmd
 }
 
-func newVersionCmd(output io.Writer) *cobra.Command {
+func newVersionCmd(log *logger.Logger) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Print version information",
 		Run: func(_ *cobra.Command, _ []string) {
-			printVersion(output)
+			printVersion(log)
 		},
 	}
 }
 
-func printVersion(w io.Writer) {
-	fmt.Fprintf(w, "journal2day1 %s\n", version)
-	fmt.Fprintf(w, "  commit: %s\n", commit)
-	fmt.Fprintf(w, "  built:  %s\n", date)
+func printVersion(log *logger.Logger) {
+	log.Bold("journal2day1 ")
+	log.Println("%s", version)
+	log.KeyValue("commit", commit)
+	log.KeyValue("built", date)
 }
 
 func runConvert(cfg *appConfig) error {
@@ -118,7 +124,9 @@ func runConvert(cfg *appConfig) error {
 		return errors.Wrap(err, "failed to resolve output path")
 	}
 
-	printConvertInfo(cfg.output, absInput, absOutput, cfg.journalName, cfg.timeZone)
+	printConvertInfo(cfg.log, absInput, absOutput, cfg.journalName, cfg.timeZone)
+
+	cfg.log.Step("Starting conversion...")
 
 	conv := converter.NewConverter(absInput, cfg.journalName)
 	conv.SetTimeZone(cfg.timeZone)
@@ -127,7 +135,7 @@ func runConvert(cfg *appConfig) error {
 		return errors.Wrap(err, "failed to convert")
 	}
 
-	fmt.Fprintln(cfg.output, "Conversion completed successfully!")
+	cfg.log.Success("Conversion completed successfully!")
 
 	return nil
 }
@@ -146,9 +154,11 @@ func validateInputDir(absInput string) error {
 	return nil
 }
 
-func printConvertInfo(w io.Writer, input, output, journalName, timeZone string) {
-	fmt.Fprintf(w, "Converting Apple Journal export from: %s\n", input)
-	fmt.Fprintf(w, "Output will be written to: %s\n", output)
-	fmt.Fprintf(w, "Journal name: %s\n", journalName)
-	fmt.Fprintf(w, "Timezone: %s\n", timeZone)
+func printConvertInfo(log *logger.Logger, input, output, journalName, timeZone string) {
+	log.Header("Journal Conversion")
+	log.KeyValue("Input", input)
+	log.KeyValue("Output", output)
+	log.KeyValue("Journal", journalName)
+	log.KeyValue("Timezone", timeZone)
+	log.Println("")
 }

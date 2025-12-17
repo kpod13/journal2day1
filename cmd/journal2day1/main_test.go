@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/kpod13/journal2day1/internal/logger"
 )
 
 func TestNewRootCmd(t *testing.T) {
@@ -27,14 +29,15 @@ func TestNewVersionCmd(t *testing.T) {
 
 	var buf bytes.Buffer
 
-	cmd := newVersionCmd(&buf)
+	log := logger.New(&buf)
+	cmd := newVersionCmd(log)
 	cmd.Run(cmd, nil)
 
 	output := buf.String()
 
 	require.Contains(t, output, "journal2day1")
-	require.Contains(t, output, "commit:")
-	require.Contains(t, output, "built:")
+	require.Contains(t, output, "commit")
+	require.Contains(t, output, "built")
 }
 
 func TestPrintVersion(t *testing.T) {
@@ -42,7 +45,8 @@ func TestPrintVersion(t *testing.T) {
 
 	var buf bytes.Buffer
 
-	printVersion(&buf)
+	log := logger.New(&buf)
+	printVersion(log)
 
 	output := buf.String()
 
@@ -99,7 +103,8 @@ func TestPrintConvertInfo(t *testing.T) {
 
 	var buf bytes.Buffer
 
-	printConvertInfo(&buf, "/input/path", "/output/path", "MyJournal", "Europe/London")
+	log := logger.New(&buf)
+	printConvertInfo(log, "/input/path", "/output/path", "MyJournal", "Europe/London")
 
 	output := buf.String()
 
@@ -113,7 +118,11 @@ func TestNewConvertCmd(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
-	cfg := &appConfig{output: &buf}
+
+	cfg := &appConfig{
+		output: &buf,
+		log:    logger.New(&buf),
+	}
 
 	cmd := newConvertCmd(cfg)
 
@@ -153,12 +162,14 @@ func TestRunConvert(t *testing.T) {
 		setupTestData(t, inputDir)
 
 		var buf bytes.Buffer
+
 		cfg := &appConfig{
 			inputPath:   inputDir,
 			outputPath:  outputPath,
 			journalName: "Test",
 			timeZone:    "UTC",
 			output:      &buf,
+			log:         logger.New(&buf),
 		}
 
 		err := runConvert(cfg)
@@ -172,12 +183,14 @@ func TestRunConvert(t *testing.T) {
 		t.Parallel()
 
 		var buf bytes.Buffer
+
 		cfg := &appConfig{
 			inputPath:   "/nonexistent/path",
 			outputPath:  "/tmp/output.zip",
 			journalName: "Test",
 			timeZone:    "UTC",
 			output:      &buf,
+			log:         logger.New(&buf),
 		}
 
 		err := runConvert(cfg)
@@ -319,12 +332,14 @@ func TestRunConvertValidationError(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	var buf bytes.Buffer
+
 	cfg := &appConfig{
 		inputPath:   tmpDir,
 		outputPath:  filepath.Join(tmpDir, "output.zip"),
 		journalName: "Test",
 		timeZone:    "UTC",
 		output:      &buf,
+		log:         logger.New(&buf),
 	}
 
 	err := runConvert(cfg)

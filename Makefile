@@ -1,4 +1,4 @@
-.PHONY: all build test lint clean install help
+.PHONY: all build test lint lint-md clean install help
 
 # Build variables
 BINARY_NAME := journal2day1
@@ -42,14 +42,24 @@ $(GOLANGCI_LINT):
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 # Run linter
-lint: $(GOLANGCI_LINT)
-	@echo "Running linter..."
+lint: lint-go lint-md
+
+# Run Go linter
+lint-go: $(GOLANGCI_LINT)
+	@echo "Running Go linter..."
 	$(GOLANGCI_LINT) run ./...
+
+# Run Markdown linter
+lint-md:
+	@echo "Running Markdown linter..."
+	@npx --yes markdownlint-cli2 "**/*.md" "#node_modules"
 
 # Run linter with auto-fix
 lint-fix: $(GOLANGCI_LINT)
-	@echo "Running linter with auto-fix..."
+	@echo "Running Go linter with auto-fix..."
 	$(GOLANGCI_LINT) run --fix ./...
+	@echo "Running Markdown linter with auto-fix..."
+	@npx --yes markdownlint-cli2 --fix "**/*.md" "#node_modules"
 
 # Format code
 fmt:
@@ -85,8 +95,10 @@ help:
 	@echo "  test          - Run tests"
 	@echo "  test-verbose  - Run tests with verbose output"
 	@echo "  test-coverage - Run tests with coverage report"
-	@echo "  lint          - Run golangci-lint"
-	@echo "  lint-fix      - Run golangci-lint with auto-fix"
+	@echo "  lint          - Run all linters (Go + Markdown)"
+	@echo "  lint-go       - Run Go linter only"
+	@echo "  lint-md       - Run Markdown linter only"
+	@echo "  lint-fix      - Run linters with auto-fix"
 	@echo "  fmt           - Format code"
 	@echo "  tidy          - Tidy dependencies"
 	@echo "  clean         - Clean build artifacts"
