@@ -2,6 +2,25 @@
 
 Convert Apple Journal HTML exports to DayOne JSON ZIP format.
 
+## Why?
+
+Apple Journal is a great app for quick daily journaling, but it lacks advanced
+features like search, tags, multiple journals, and cross-platform sync. DayOne
+offers all of this and more.
+
+Unfortunately, there's no direct migration path between these apps. Apple
+Journal only exports to HTML, while DayOne imports its own JSON format.
+
+**journal2day1** bridges this gap — it converts your Apple Journal export into
+a DayOne-compatible ZIP archive, preserving:
+
+- Entry text and titles
+- Photos and videos
+- Original creation dates
+- Media metadata
+
+## How It Works
+
 ```text
 ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
 │  Apple Journal  │      │  journal2day1   │      │     DayOne      │
