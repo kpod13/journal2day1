@@ -1,6 +1,6 @@
 # journal2day1
 
-Convert Apple Journal HTML exports to DayOne JSON ZIP format.
+A cross-platform CLI tool that converts Apple Journal HTML exports into a Day One-compatible format ready for import.
 
 ## Why?
 
