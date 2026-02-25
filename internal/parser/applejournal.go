@@ -138,6 +138,7 @@ func parsePageHeaderDate(text string) time.Time {
 		"Monday, 02 January 2006",
 		"2 January 2006",
 		"02 January 2006",
+		"Monday, January 2, 2006",
 	}
 
 	for _, format := range formats {
